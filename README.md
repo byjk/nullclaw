@@ -72,51 +72,49 @@ ls -lh zig-out/bin/nullclaw
 git clone https://github.com/nullclaw/nullclaw.git
 cd nullclaw
 zig build -Doptimize=ReleaseSmall
-cd zig-out/bin
-echo "export PATH=\$PATH:$(pwd)" >> ~/.bashrc
-source ~/.bashrc
 
-zig build test --summary all  
+zig build test --summary all
+
 # Quick setup
-nullclaw onboard --api-key sk-... --provider openrouter
+zig-out/bin/nullclaw onboard --api-key sk-... --provider openrouter
 
 # Or interactive wizard
-nullclaw onboard --interactive
+zig-out/bin/nullclaw onboard --interactive
 
 # Chat
-nullclaw agent -m "Hello, nullclaw!"
+zig-out/bin/nullclaw agent -m "Hello, nullclaw!"
 
 # Interactive mode
-nullclaw agent
+zig-out/bin/nullclaw agent
 
 # Start gateway runtime (gateway + all configured channels/accounts + heartbeat + scheduler)
-nullclaw gateway                # default: 127.0.0.1:3000
-nullclaw gateway --port 8080    # custom port
+zig-out/bin/nullclaw gateway                # default: 127.0.0.1:3000
+zig-out/bin/nullclaw gateway --port 8080    # custom port
 
 # Check status
-nullclaw status
+zig-out/bin/nullclaw status
 
 # Run system diagnostics
-nullclaw doctor
+zig-out/bin/nullclaw doctor
 
 # Check channel health
-nullclaw channel status
+zig-out/bin/nullclaw channel status
 
 # Start specific channels
-nullclaw channel start telegram
-nullclaw channel start discord
-nullclaw channel start signal
+zig-out/bin/nullclaw channel start telegram
+zig-out/bin/nullclaw channel start discord
+zig-out/bin/nullclaw channel start signal
 
 # Manage background service
-nullclaw service install
-nullclaw service status
+zig-out/bin/nullclaw service install
+zig-out/bin/nullclaw service status
 
 # Migrate memory from OpenClaw
-nullclaw migrate openclaw --dry-run
-nullclaw migrate openclaw
+zig-out/bin/nullclaw migrate openclaw --dry-run
+zig-out/bin/nullclaw migrate openclaw
 ```
 
-> **Dev fallback (no global install):** prefix commands with `zig-out/bin/` (example: `zig-out/bin/nullclaw status`).
+> **Optional:** add `zig-out/bin` to your `PATH` using your shell's native setup if you prefer running `nullclaw` without the prefix.
 
 ## Edge MVP (Hybrid Host + WASM Logic)
 

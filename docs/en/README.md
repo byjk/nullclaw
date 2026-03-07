@@ -4,6 +4,26 @@ This directory provides structured English documentation for NullClaw, covering 
 
 If you are new here, use the guided paths below instead of guessing which page to open first.
 
+## Page Guide
+
+**Who this page is for**
+
+- New users choosing their first documentation path
+- Operators deciding which operational guide to open next
+- Contributors looking for the right entry point before deeper docs
+
+**Read this next**
+
+- Start with [Installation](./installation.md) if NullClaw is not running yet
+- Go to [Configuration](./configuration.md) if you already installed it
+- Jump to [Commands](./commands.md) if you want a task-based CLI reference
+
+**If you came from ...**
+
+- `README.md`: use this page as the English landing page, then branch into the guide you need
+- [Commands](./commands.md): come back here if you want a broader map of the docs set
+- [Development](./development.md): return here if you need user or operator docs outside contributor workflows
+
 ## Start Paths
 
 ### 1. I just want to get it running
@@ -65,3 +85,16 @@ If you are building from source instead of Homebrew, start with [Installation](.
 - [Contributing](../../CONTRIBUTING.md)
 - [Security Policy](../../SECURITY.md)
 - [Signal Deployment](../../SIGNAL.md)
+
+## Next Steps
+
+- Follow [Installation](./installation.md) for setup from Homebrew or source
+- Continue to [Configuration](./configuration.md) to wire providers, memory, and channels
+- Use [Usage and Operations](./usage.md) once you want to run NullClaw day to day
+
+## Related Pages
+
+- [Commands](./commands.md)
+- [Development](./development.md)
+- [Architecture](./architecture.md)
+- [Gateway API](./gateway-api.md)

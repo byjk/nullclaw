@@ -2,6 +2,26 @@
 
 This page is for contributors. The goal is to help you set up the repo, make a focused change, validate it, and open a PR without guesswork.
 
+## Page Guide
+
+**Who this page is for**
+
+- Contributors preparing a local dev environment
+- Maintainers validating changes before opening or reviewing a PR
+- Doc or code authors checking the repo workflow and validation baseline
+
+**Read this next**
+
+- Open [Architecture](./architecture.md) before touching unfamiliar subsystems
+- Open [Commands](./commands.md) if your change affects CLI behavior or docs
+- Open [README](./README.md) if you need the broader English docs map
+
+**If you came from ...**
+
+- [README](./README.md): this page narrows the path to contributor-specific setup and validation
+- [Commands](./commands.md): come here when a CLI change also needs workflow, testing, or PR guidance
+- `AGENTS.md`: use this page for the practical day-to-day contributor checklist
+
 ## Before You Edit
 
 - Development and testing are pinned to **Zig 0.15.2**.
@@ -151,3 +171,16 @@ Suggested template:
 - Commands: `docs/en/commands.md`
 - Contribution guide: `CONTRIBUTING.md`
 - Engineering protocol: `AGENTS.md`
+
+## Next Steps
+
+- Read [Architecture](./architecture.md) before editing deeper runtime, security, or provider code
+- Use [Commands](./commands.md) when your change touches the CLI surface or examples
+- Open [CONTRIBUTING.md](../../CONTRIBUTING.md) before preparing the final PR description and review flow
+
+## Related Pages
+
+- [README](./README.md)
+- [Installation](./installation.md)
+- [Configuration](./configuration.md)
+- [Commands](./commands.md)

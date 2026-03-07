@@ -4,6 +4,12 @@
 
 `nullclaw help` 提供的是顶层摘要；本页与其保持对齐，并继续展开到子命令与注意事项。
 
+## 页面导航
+
+- 这页适合谁：已经准备使用 CLI，但还不确定命令名、子命令或常见入口的人。
+- 看完去哪里：首次配置看 [配置指南](./configuration.md)；日常运行和排障看 [使用与运维](./usage.md)；如果你在改 CLI 或文档，去 [开发指南](./development.md)。
+- 如果你是从某页来的：从 [README](./README.md) 来，可先看“先看这几条”；从 [安装指南](./installation.md) 来，通常下一步是 `onboard`、`agent` 和 `gateway`；从 [开发指南](./development.md) 来，请把本页当作 CLI 行为和示例索引。
+
 ## 先看这几条
 
 - 看总帮助：`nullclaw help`
@@ -152,3 +158,16 @@
 3. `nullclaw channel status`
 4. `nullclaw agent -m "self-check"`
 5. 如涉及网关，再执行 `curl http://127.0.0.1:3000/health`
+
+## 下一步
+
+- 要把命令真正跑起来：继续看 [配置指南](./configuration.md) 和 [使用与运维](./usage.md)。
+- 要部署长期运行：继续看 [使用与运维](./usage.md) 和 [Gateway API](./gateway-api.md)。
+- 要修改命令实现或补测试：继续看 [开发指南](./development.md) 和 [架构总览](./architecture.md)。
+
+## 相关页面
+
+- [中文文档入口](./README.md)
+- [安装指南](./installation.md)
+- [配置指南](./configuration.md)
+- [开发指南](./development.md)

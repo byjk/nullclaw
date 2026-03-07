@@ -4,6 +4,26 @@ This page groups the NullClaw CLI by task so you can find the right command quic
 
 `nullclaw help` gives the top-level summary; this page stays aligned with it and expands into the detailed subcommands and notes.
 
+## Page Guide
+
+**Who this page is for**
+
+- Users who already have NullClaw installed and need the right CLI entry point
+- Operators checking runtime, service, channel, or diagnostic commands
+- Contributors verifying command names, flags, and task groupings
+
+**Read this next**
+
+- Open [Configuration](./configuration.md) if you need to understand what the commands act on
+- Open [Usage and Operations](./usage.md) if you want workflows instead of command listings
+- Open [Development](./development.md) if you are changing CLI behavior or docs
+
+**If you came from ...**
+
+- [README](./README.md): this page is the fastest way to find a concrete command
+- [Installation](./installation.md): after setup, use this page to validate the install and learn daily commands
+- `nullclaw help`: use this page when the built-in help is correct but too terse
+
 ## Start with these
 
 - Show help: `nullclaw help`
@@ -154,3 +174,16 @@ These are more useful for automation, probing, or integrations than for normal d
 3. `nullclaw channel status`
 4. `nullclaw agent -m "self-check"`
 5. If gateway is involved, also run `curl http://127.0.0.1:3000/health`
+
+## Next Steps
+
+- Go to [Usage and Operations](./usage.md) for task-based runtime workflows
+- Go to [Configuration](./configuration.md) if a command depends on provider, gateway, or memory settings
+- Go to [Development](./development.md) if you plan to change command behavior or update docs alongside code
+
+## Related Pages
+
+- [README](./README.md)
+- [Installation](./installation.md)
+- [Gateway API](./gateway-api.md)
+- [Architecture](./architecture.md)

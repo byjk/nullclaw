@@ -32,7 +32,7 @@ const log = std.log.scoped(.session);
 const MESSAGE_LOG_MAX_BYTES: usize = 4096;
 const TOKEN_USAGE_LEDGER_FILENAME = "llm_token_usage.jsonl";
 const NS_PER_SEC: i128 = std.time.ns_per_s;
-const RUNTIME_COMMAND_ROLE = "__runtime_command__";
+const RUNTIME_COMMAND_ROLE = memory_mod.RUNTIME_COMMAND_ROLE;
 
 fn messageLogPreview(text: []const u8) struct { slice: []const u8, truncated: bool } {
     if (text.len <= MESSAGE_LOG_MAX_BYTES) {
@@ -59,7 +59,7 @@ fn persistedAssistantReply(agent: *const Agent, response: []const u8) []const u8
 
 fn restorePersistedSessionState(session: *Session, entries: []const memory_mod.MessageEntry) void {
     for (entries) |entry| {
-        if (std.mem.eql(u8, entry.role, RUNTIME_COMMAND_ROLE)) {
+        if (memory_mod.isRuntimeCommandRole(entry.role)) {
             const maybe_response = session.agent.handleSlashCommand(entry.content) catch null;
             if (maybe_response) |response| session.agent.allocator.free(response);
             continue;

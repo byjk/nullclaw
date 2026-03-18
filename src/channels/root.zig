@@ -15,9 +15,39 @@
 //!   - Lark/Feishu (HTTP callback)
 //!   - DingTalk (WebSocket stream mode)
 
+const builtin = @import("builtin");
 const std = @import("std");
 const streaming = @import("../streaming.zig");
 const outbound = @import("../outbound.zig");
+const log = std.log.scoped(.channels);
+
+fn wildcardWarningState(comptime scope: []const u8) *std.atomic.Value(bool) {
+    const WarningState = struct {
+        var warned = std.atomic.Value(bool).init(false);
+    };
+    _ = scope;
+    return &WarningState.warned;
+}
+
+/// Emit a one-time warning when an allowlist uses `*` to allow all senders.
+///
+/// Each comptime scope gets its own warning state, so channels log once per scope
+/// without introducing runtime allocation or shared registries.
+pub fn warnWildcardAllowAll(comptime scope: []const u8) void {
+    if (wildcardWarningState(scope).cmpxchgStrong(false, true, .acq_rel, .acquire) == null) {
+        log.warn("{s} allowlist contains '*' wildcard; this enables allow-all behavior", .{scope});
+    }
+}
+
+pub fn resetWildcardWarningForTest(comptime scope: []const u8) void {
+    if (!builtin.is_test) @compileError("resetWildcardWarningForTest is test-only");
+    wildcardWarningState(scope).store(false, .release);
+}
+
+pub fn wildcardWarningTriggeredForTest(comptime scope: []const u8) bool {
+    if (!builtin.is_test) @compileError("wildcardWarningTriggeredForTest is test-only");
+    return wildcardWarningState(scope).load(.acquire);
+}
 
 // ════════════════════════════════════════════════════════════════════════════
 // Shared Types
@@ -292,47 +322,90 @@ pub const ChannelPolicy = struct {
 /// - `is_dm`: true if this is a direct message, false if group
 /// - `is_mention`: true if the bot was mentioned (relevant for group mention_only)
 pub fn checkPolicy(policy: ChannelPolicy, sender_id: []const u8, is_dm: bool, is_mention: bool) bool {
+    return checkPolicyScoped("channel", policy, sender_id, is_dm, is_mention);
+}
+
+pub fn checkPolicyScoped(comptime scope: []const u8, policy: ChannelPolicy, sender_id: []const u8, is_dm: bool, is_mention: bool) bool {
     if (is_dm) {
         return switch (policy.dm) {
             .allow => true,
             .deny => false,
-            .allowlist => inAllowlist(policy.allowlist, sender_id),
+            .allowlist => inAllowlistScoped(scope, policy.allowlist, sender_id),
         };
     } else {
         return switch (policy.group) {
             .open => true,
             .mention_only => is_mention,
-            .allowlist => inAllowlist(policy.allowlist, sender_id),
+            .allowlist => inAllowlistScoped(scope, policy.allowlist, sender_id),
         };
     }
 }
 
 /// Check if sender_id is in the given allowlist (case-insensitive, supports "*" wildcard).
 fn inAllowlist(allowlist: []const []const u8, sender_id: []const u8) bool {
+    return inAllowlistScoped("channel", allowlist, sender_id);
+}
+
+fn inAllowlistScoped(comptime scope: []const u8, allowlist: []const []const u8, sender_id: []const u8) bool {
+    var matched = false;
+    var wildcard_seen = false;
     for (allowlist) |entry| {
-        if (std.mem.eql(u8, entry, "*")) return true;
-        if (std.ascii.eqlIgnoreCase(entry, sender_id)) return true;
+        if (std.mem.eql(u8, entry, "*")) {
+            wildcard_seen = true;
+            continue;
+        }
+        if (std.ascii.eqlIgnoreCase(entry, sender_id)) matched = true;
     }
-    return false;
+    if (wildcard_seen) {
+        warnWildcardAllowAll(scope);
+        return true;
+    }
+    return matched;
 }
 
 /// Check if a user/sender is in an allowlist.
 /// Supports "*" wildcard for allow-all.
 pub fn isAllowed(allowed: []const []const u8, sender: []const u8) bool {
+    return isAllowedScoped("channel", allowed, sender);
+}
+
+pub fn isAllowedScoped(comptime scope: []const u8, allowed: []const []const u8, sender: []const u8) bool {
+    var matched = false;
+    var wildcard_seen = false;
     for (allowed) |a| {
-        if (std.mem.eql(u8, a, "*")) return true;
-        if (std.ascii.eqlIgnoreCase(a, sender)) return true;
+        if (std.mem.eql(u8, a, "*")) {
+            wildcard_seen = true;
+            continue;
+        }
+        if (std.ascii.eqlIgnoreCase(a, sender)) matched = true;
     }
-    return false;
+    if (wildcard_seen) {
+        warnWildcardAllowAll(scope);
+        return true;
+    }
+    return matched;
 }
 
 /// Check if a user/sender is in an allowlist (exact match, no case folding).
 pub fn isAllowedExact(allowed: []const []const u8, sender: []const u8) bool {
+    return isAllowedExactScoped("channel", allowed, sender);
+}
+
+pub fn isAllowedExactScoped(comptime scope: []const u8, allowed: []const []const u8, sender: []const u8) bool {
+    var matched = false;
+    var wildcard_seen = false;
     for (allowed) |a| {
-        if (std.mem.eql(u8, a, "*")) return true;
-        if (std.mem.eql(u8, a, sender)) return true;
+        if (std.mem.eql(u8, a, "*")) {
+            wildcard_seen = true;
+            continue;
+        }
+        if (std.mem.eql(u8, a, sender)) matched = true;
     }
-    return false;
+    if (wildcard_seen) {
+        warnWildcardAllowAll(scope);
+        return true;
+    }
+    return matched;
 }
 
 /// Get current UNIX epoch seconds.
@@ -541,6 +614,37 @@ test "isAllowed wildcard mixed with specific" {
     const list = [_][]const u8{ "alice", "*" };
     try std.testing.expect(isAllowed(&list, "alice"));
     try std.testing.expect(isAllowed(&list, "anyone_else"));
+}
+
+test "isAllowedScoped triggers wildcard warning when exact match comes first" {
+    const scope = "root test isAllowed wildcard after exact";
+    resetWildcardWarningForTest(scope);
+    defer resetWildcardWarningForTest(scope);
+
+    const list = [_][]const u8{ "alice", "*" };
+    try std.testing.expect(isAllowedScoped(scope, &list, "alice"));
+    try std.testing.expect(wildcardWarningTriggeredForTest(scope));
+}
+
+test "isAllowedExactScoped triggers wildcard warning when exact match comes first" {
+    const scope = "root test isAllowedExact wildcard after exact";
+    resetWildcardWarningForTest(scope);
+    defer resetWildcardWarningForTest(scope);
+
+    const list = [_][]const u8{ "alice", "*" };
+    try std.testing.expect(isAllowedExactScoped(scope, &list, "alice"));
+    try std.testing.expect(wildcardWarningTriggeredForTest(scope));
+}
+
+test "checkPolicyScoped triggers wildcard warning when exact match comes first" {
+    const scope = "root test checkPolicy wildcard after exact";
+    resetWildcardWarningForTest(scope);
+    defer resetWildcardWarningForTest(scope);
+
+    const list = [_][]const u8{ "alice", "*" };
+    const policy = ChannelPolicy{ .dm = .allowlist, .allowlist = &list };
+    try std.testing.expect(checkPolicyScoped(scope, policy, "alice", true, false));
+    try std.testing.expect(wildcardWarningTriggeredForTest(scope));
 }
 
 test "channel message struct fields" {

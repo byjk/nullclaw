@@ -4432,9 +4432,16 @@ pub fn run(allocator: std.mem.Allocator, host: []const u8, port: u16, config_ptr
         var pair_response_buf: [256]u8 = undefined;
 
         if (findCronRouteDescriptor(base_path)) |desc| {
-            // /cron endpoints are local-only (gateway binds to 127.0.0.1 by default).
-            // No bearer auth required — network-level isolation is sufficient.
-            if (false) {
+            // Auth check: require bearer token when pairing is active.
+            // When no tokens have been issued yet (pairing not completed), allow through
+            // so the CLI can bootstrap jobs before pairing is set up.
+            const auth_header = extractHeader(raw, "Authorization");
+            const bearer = if (auth_header) |ah| extractBearerToken(ah) else null;
+            const pairing_guard = if (state.pairing_guard) |*guard| guard else null;
+            const cron_authorized = if (pairing_guard) |g| (if (!g.requirePairing() or !g.hasPairedTokens()) true else isWebhookAuthorized(pairing_guard, bearer)) else true;
+            if (!cron_authorized) {
+                response_status = "401 Unauthorized";
+                response_body = "{\"error\":\"unauthorized\"}";
             } else {
                 _ = desc.method; // method check is inside each handler
                 var cron_ctx = WebhookHandlerContext{

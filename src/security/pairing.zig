@@ -128,6 +128,11 @@ pub const PairingGuard = struct {
         return self.require_pairing_flag;
     }
 
+    /// Whether at least one bearer token has been issued (pairing completed).
+    pub fn hasPairedTokens(self: *const PairingGuard) bool {
+        return self.paired_tokens.count() > 0;
+    }
+
     /// Attempt to pair with the given code. Returns a bearer token on success.
     /// Returns error.LockedOut if locked out due to brute force.
     /// Returns null if code is incorrect.
